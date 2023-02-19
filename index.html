@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Mokepon!</title>
+	<script defer src="/js/mokepon.js"></script>
+	<link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+	<section id="choose-pet">
+		<h1>MOKEPON!</h1>
+
+		<h2>Choose Your Pet</h2>
+
+		<div id="pet-cards" class="pet-cards-container">
+		</div>
+
+		<button id="pet-pick">Select</button>
+	</section>
+
+	<section id="choose-attack" style="display: none;">
+		<h1>MOKEPON!</h1>
+
+		<h2>Choose The Attack</h2>
+		<h3 id="result"></h3>
+
+		<div class="attacks-container">
+			<button id="attack-pick-fire">Fire! 🔥</button>
+			<button id="attack-pick-water">Water! 💧</button>
+			<button id="attack-pick-earth">Earth! 🌵</button>
+		</div>
+
+		<div class="pets-container">
+			<input type="checkbox" id="player-win" hidden />
+			<div class="pet-info-card">
+				<p><span id="player-pet"></span> <b>(You)</b></p>
+				<p><span id="player-life">3</span> 💕</p>
+				<img src="" alt="" id="player-pet-img" />
+				<div class="attack-logger" id="player-attacks"></div>
+			</div>
+			<h3>V.S.</h3>
+			<input type="checkbox" id="opponent-win" hidden />
+			<div class="pet-info-card">
+				<p><span id="opponent-pet"></span> <b>(Opponent)</b></p>
+				<p><span id="opponent-life">3</span> 💕</p>
+				<img src="" alt="" id="opponent-pet-img" />
+				<div class="attack-logger" id="opponent-attacks"></div>
+			</div>
+		</div>
+
+		<button id="restart-game" style="display: none;">Restart</button>
+
+	</section>
+
+	<section id="messages">
+	</section>
+</body>
+
+</html>
