@@ -28,17 +28,14 @@
 		<h2>Choose The Attack</h2>
 		<h3 id="result"></h3>
 
-		<div class="attacks-container">
-			<button id="attack-pick-fire">Fire! 🔥</button>
-			<button id="attack-pick-water">Water! 💧</button>
-			<button id="attack-pick-earth">Earth! 🌵</button>
+		<div id="attacks-container" class="attacks-container">
 		</div>
 
 		<div class="pets-container">
 			<input type="checkbox" id="player-win" hidden />
 			<div class="pet-info-card">
 				<p><span id="player-pet"></span> <b>(You)</b></p>
-				<p><span id="player-life">3</span> 💕</p>
+				<p><span id="player-wins">0</span> 👑</p>
 				<img src="" alt="" id="player-pet-img" />
 				<div class="attack-logger" id="player-attacks"></div>
 			</div>
@@ -46,7 +43,7 @@
 			<input type="checkbox" id="opponent-win" hidden />
 			<div class="pet-info-card">
 				<p><span id="opponent-pet"></span> <b>(Opponent)</b></p>
-				<p><span id="opponent-life">3</span> 💕</p>
+				<p><span id="opponent-wins">0</span> 👑</p>
 				<img src="" alt="" id="opponent-pet-img" />
 				<div class="attack-logger" id="opponent-attacks"></div>
 			</div>
