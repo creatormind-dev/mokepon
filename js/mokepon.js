@@ -42,8 +42,11 @@ class Mokepon {
 const hipodoge = new Mokepon("Hipodoge", "🐶", [ water, water, water, fire, earth ], "/assets/mokepons_mokepon_hipodoge_attack.png");
 const capipepo = new Mokepon("Capipepo", "🐛", [ earth, earth, earth, fire, water ], "/assets/mokepons_mokepon_capipepo_attack.png");
 const ratigueya = new Mokepon("Ratigueya", "🐀", [ fire, fire, fire, water, earth ], "/assets/mokepons_mokepon_ratigueya_attack.png");
+const langostelvis = new Mokepon("Langostelvis", "🦞", [ fire, fire, water, water, earth ], "/assets/mokepons_mokepon_langostelvis_attack.png");
+const tucapalma = new Mokepon("Tucapalma", "🦜", [ earth, earth, water, water, fire ], "/assets/mokepons_mokepon_tucapalma_attack.png");
+const pydos = new Mokepon("Pydos", "🐍", [ fire, fire, earth, earth, water ], "/assets/mokepons_mokepon_pydos_attack.png");
 
-const MOKEPONS = [ hipodoge, capipepo, ratigueya ];
+const MOKEPONS = [ hipodoge, capipepo, ratigueya, tucapalma, langostelvis, pydos ];
 
 
 /** @type {Mokepon?} */
@@ -105,6 +108,9 @@ function playerPetSelect () {
 	const inputHipodoge = $("#hipodoge");
 	const inputCapipepo = $("#capipepo");
 	const inputRatigueya = $("#ratigueya");
+	const inputTucapalma = $("#tucapalma");
+	const inputLangostelvis = $("#langostelvis");
+	const inputPydos = $("#pydos");
 
 	if (inputHipodoge.checked)
 		playerPet = { ...MOKEPONS[0] };
@@ -112,6 +118,12 @@ function playerPetSelect () {
 		playerPet = { ...MOKEPONS[1] };
 	else if (inputRatigueya.checked)
 		playerPet = { ...MOKEPONS[2] };
+	else if (inputTucapalma.checked)
+		playerPet = { ...MOKEPONS[3] };
+	else if (inputLangostelvis.checked)
+		playerPet = { ...MOKEPONS[4] };
+	else if (inputPydos.checked)
+		playerPet = { ...MOKEPONS[5] };
 	else {
 		alert("Please, pick a pet!");
 		return;
