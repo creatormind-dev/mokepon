@@ -227,23 +227,6 @@ input:checked + .pet-card:before, input:checked + div:before {
 }
 
 
-#messages {
-	position: fixed;
-	top: 0;
-	right: 0;
-
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
-
-	height: 100vh;
-	overflow-y: auto;
-
-	align-items: start;
-	justify-content: start;
-	gap: 1rem;
-}
-
-
 @media (max-width: 768px) {
 	h1 {
 		font-size: 3rem;
@@ -268,9 +251,5 @@ input:checked + .pet-card:before, input:checked + div:before {
 	.pets-container {
 		display: flex;
 		flex-direction: column;
-	}
-
-	#messages {
-		display: none;
 	}
 }

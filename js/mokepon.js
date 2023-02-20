@@ -59,8 +59,8 @@ let opponentPet = null;
 const btnPet = $("#pet-pick");
 const btnRestart = $("#restart-game");
 
-const chkPlayerWin = $("#player-win");
-const chkOpponentWin = $("#opponent-win");
+const inputPlayerWin = $("#player-win");
+const inputOpponentWin = $("#opponent-win");
 // #endregion
 
 
@@ -71,23 +71,6 @@ const chkOpponentWin = $("#opponent-win");
  */
 function random (min, max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-/**
- * Displays the given `message` in the side panel.
- * @param {string} message The message to display.
- * @param {boolean} separator Whether or not to append a separator at the end of the message.
- */
-function announce (message, separator = false) {
-	const sectionMessages = $("#messages");
-	const p = document.createElement("p");
-
-	p.textContent = message;
-
-	sectionMessages.appendChild(p);
-
-	if (separator)
-		sectionMessages.appendChild(document.createElement("hr"));
 }
 
 /**
@@ -104,27 +87,8 @@ function logAttack (from, attack) {
 	sectionLogger.appendChild(p);
 }
 
-function playerPetSelect () {
-	const inputHipodoge = $("#hipodoge");
-	const inputCapipepo = $("#capipepo");
-	const inputRatigueya = $("#ratigueya");
-	const inputTucapalma = $("#tucapalma");
-	const inputLangostelvis = $("#langostelvis");
-	const inputPydos = $("#pydos");
-
-	if (inputHipodoge.checked)
-		playerPet = { ...MOKEPONS[0] };
-	else if (inputCapipepo.checked)
-		playerPet = { ...MOKEPONS[1] };
-	else if (inputRatigueya.checked)
-		playerPet = { ...MOKEPONS[2] };
-	else if (inputTucapalma.checked)
-		playerPet = { ...MOKEPONS[3] };
-	else if (inputLangostelvis.checked)
-		playerPet = { ...MOKEPONS[4] };
-	else if (inputPydos.checked)
-		playerPet = { ...MOKEPONS[5] };
-	else {
+function playerMokeponSelect () {
+	if (!playerPet) {
 		alert("Please, pick a pet!");
 		return;
 	}
@@ -138,25 +102,24 @@ function playerPetSelect () {
 	const attacksContainer = $("#attacks-container");
 
 	for (let i = 0; i < playerPet.attacks.length; i++) {
-		const att = playerPet.attacks[i];
+		const attack = playerPet.attacks[i];
 		const attackButton = document.createElement("button");
+		const index = i;
 
-		console.log(att);
-
-		attackButton.textContent = `${att.icon} ${att.type}`;
+		attackButton.textContent = `${attack.icon} ${attack.type}`;
 		attackButton.addEventListener("click", (e) => {
 			e.target.disabled = true;
 
-			attack(i);
+			makeAttack(attack);
 		});
 
 		attacksContainer.appendChild(attackButton);
 	}
 
-	opponentPetSelect();
+	opponentMokeponSelect();
 }
 
-function opponentPetSelect () {
+function opponentMokeponSelect () {
 	const opponentPick = random(0, MOKEPONS.length - 1);
 
 	opponentPet = { ...MOKEPONS[opponentPick] };
@@ -168,37 +131,31 @@ function opponentPetSelect () {
 
 /**
  * Attacks with the given type of attack.
- * @param {number} attackIndex The type of attack used in combat.
+ * @param {Attack} attack The type of attack used in combat.
  */
-function attack (attackIndex) {
-	const playerAttack = playerPet.attacks[attackIndex];
+function makeAttack (attack) {
+	const playerAttack = attack;
 
-	announce("> Your pet attacked with " + playerAttack.type.toUpperCase() + "!");
 	logAttack("player", playerAttack);
 
 	const opponentAttackIndex = random(0, opponentPet.attacks.length - 1);
 	const opponentAttack = opponentPet.attacks.splice(opponentAttackIndex, 1)[0];
 
-	announce("> Opponent's pet attacked with " + opponentAttack.type.toUpperCase() + "!");
 	logAttack("opponent", opponentAttack);
 
 	const h3Result = $("#result");
 	const result = (playerAttack.value - opponentAttack.value);
 
 	if (result == 1 || result < -1) {
-		announce("You Win! 🎉", true);
 		h3Result.textContent = "You Win! 🎉";
 		playerPet.wins++;
 	}
 	else if (result == -1 || result > 1) {
-		announce("You Lose! 💀", true);
 		h3Result.textContent = "You Lose! 💀";
 		opponentPet.wins++;
 	}
-	else if (result === 0) {
-		announce("Tie! 😐", true);
+	else if (result === 0)
 		h3Result.textContent = "Tie! 😐";
-	}
 
 	$("#player-wins").textContent = playerPet.wins;
 	$("#opponent-wins").textContent = opponentPet.wins;
@@ -206,12 +163,12 @@ function attack (attackIndex) {
 
 	if ((playerPet.wins === 5 || opponentPet.wins === 5) || opponentPet.attacks.length === 0) {
 		if (playerPet.wins > opponentPet.wins) {
-			chkPlayerWin.checked = true;
+			inputPlayerWin.checked = true;
 			h3Result.textContent = "You Win! 🎉";
 			finishGame();
 		}
 		else if (opponentPet.wins > playerPet.wins) {
-			chkOpponentWin.checked = true;
+			inputOpponentWin.checked = true;
 			h3Result.textContent = "You Lose! 💀";
 			finishGame();
 		}
@@ -227,14 +184,16 @@ function startGame () {
 	
 	$("#choose-pet").style.display = "flex";
 	$("#choose-attack").style.display = "none";
-	$("#messages").innerHTML = "";
 
-	chkPlayerWin.checked = false;
-	chkOpponentWin.checked = false;
+	inputPlayerWin.checked = false;
+	inputOpponentWin.checked = false;
+	btnPet.disabled = true;
 
-	for (const mokepon of MOKEPONS) {
+	for (let i = 0; i < MOKEPONS.length; i++) {
+		const mokepon = MOKEPONS[i];
+
 		petCards.innerHTML += `
-		<input type="radio" name="pet" id="${mokepon.name.toLowerCase()}" hidden />
+		<input type="radio" id="${mokepon.name.toLowerCase()}" name="mokepon" hidden />
 		<label class="pet-card" for="${mokepon.name.toLowerCase()}">
 			<p>${mokepon.name}</p>
 			<img src="${mokepon.img}" alt="${mokepon.icon}" />
@@ -242,7 +201,18 @@ function startGame () {
 		`;
 	}
 
-	btnPet.addEventListener("click", () => { playerPetSelect(); });
+	for (let i = 0; i < MOKEPONS.length; i++) {
+		const input = $(`#${MOKEPONS[i].name.toLowerCase()}`);
+
+		input.addEventListener("click", function () {
+			btnPet.disabled = false;
+
+			if (this.checked)
+				playerPet = { ...MOKEPONS[i] };
+		});
+	}
+
+	btnPet.addEventListener("click", () => { playerMokeponSelect(); });
 	btnRestart.addEventListener("click", () => { location.reload(); });
 }
 
