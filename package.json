@@ -1,0 +1,26 @@
+{
+  "name": "mokepon",
+  "version": "0.1.0",
+  "description": "",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrian-oroanz/mokepon.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adrian-oroanz/mokepon/issues"
+  },
+  "homepage": "https://github.com/adrian-oroanz/mokepon#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.34.0"
+  }
+}

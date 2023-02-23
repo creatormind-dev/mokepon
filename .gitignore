@@ -1,2 +1,5 @@
 # VSCode configuration files.
-.vscode
+/.vscode
+
+# Dependencies.
+/node_modules
