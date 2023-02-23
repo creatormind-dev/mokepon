@@ -78,6 +78,11 @@ section {
 	gap: 1rem;
 }
 
+canvas {
+	width: 420px;
+	height: 340px;
+}
+
 h1 {
 	font-size: 4rem;
 }
@@ -99,7 +104,7 @@ hr {
 }
 
 
-.pet-cards-container {
+.mokepon-cards-container {
 	display: flex;
 	flex-flow: row wrap;
 	justify-content: space-between;
@@ -108,7 +113,7 @@ hr {
 	max-width: 768px;
 }
 
-.pet-card {
+.mokepon-card {
 	cursor: pointer;
 
 	display: flex;
@@ -130,22 +135,22 @@ hr {
 	transition: all 250ms;
 }
 
-.pet-card:hover {
+.mokepon-card:hover {
 	background-color: #FFFFFF55;
 }
 
-.pet-card img {
-	width: 12rem;
+.mokepon-card img {
+	width: 10rem;
 
 	margin: 1rem 0;
 }
 
-input:checked + .pet-card, input:checked + div {
+input:checked + .mokepon-card, input:checked + div {
 	background-color: #FFFFFF22;
 	transform: translateY(-10px);
 }
 
-input:checked + .pet-card:before, input:checked + div:before {
+input:checked + .mokepon-card:before, input:checked + div:before {
 	content: '';
 
 	position: absolute;
@@ -179,7 +184,7 @@ input:checked + .pet-card:before, input:checked + div:before {
 	margin: 0;
 }
 
-.pets-container {
+.mokepons-container {
 	display: grid;
 	grid-template-columns: 3fr 1fr 3fr;
 	align-items: center;
@@ -189,7 +194,7 @@ input:checked + .pet-card:before, input:checked + div:before {
 	margin-bottom: 1.5rem;
 }
 
-.pet-info-card {
+.mokepon-info-card {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -213,7 +218,7 @@ input:checked + .pet-card:before, input:checked + div:before {
 	transition: all 250ms;
 }
 
-.pet-info-card img {
+.mokepon-info-card img {
 	width: 12rem;
 }
 
@@ -224,6 +229,20 @@ input:checked + .pet-card:before, input:checked + div:before {
 	gap: 0.5rem;
 
 	margin: 1rem 0;
+}
+
+.arrows-container {
+	display: grid;
+	grid-template-columns: auto auto auto;
+	grid-template-rows: auto auto;
+}
+
+.arrows-container button {
+	width: 6rem;
+}
+
+#map {
+	border: 2px solid #FFFFFF55;
 }
 
 
@@ -240,7 +259,12 @@ input:checked + .pet-card:before, input:checked + div:before {
 		width: 100%;
 	}
 
-	.pet-cards-container {
+	canvas {
+		width: 340px;
+		height: 260px;
+	}
+
+	.mokepon-cards-container {
 		flex-direction: column;
 	}
 
@@ -248,7 +272,7 @@ input:checked + .pet-card:before, input:checked + div:before {
 		flex-direction: column;
 	}
 
-	.pets-container {
+	.mokepons-container {
 		display: flex;
 		flex-direction: column;
 	}

@@ -11,15 +11,31 @@
 </head>
 
 <body>
-	<section id="choose-pet">
+	<section id="choose-mokepon">
 		<h1>MOKEPON!</h1>
 
 		<h2>Choose Your Pet</h2>
 
-		<div id="pet-cards" class="pet-cards-container">
+		<div id="mokepon-cards" class="mokepon-cards-container">
 		</div>
 
-		<button id="pet-pick">Select</button>
+		<button id="mokepon-select">Select</button>
+	</section>
+
+	<section id="map-view">
+		<h1>MOKEPON!</h1>
+		<h2>Explore the World with your Mokepon</h2>
+
+		<canvas id="map"></canvas>
+
+		<div class="arrows-container">
+			<br />
+			<button onmouseup="stopMovingMokepon()" onmousedown="startMovingMokepon('up')">⬆</button>
+			<br />
+			<button onmouseup="stopMovingMokepon()" onmousedown="startMovingMokepon('left')">⬅</button>
+			<button onmouseup="stopMovingMokepon()" onmousedown="startMovingMokepon('down')">⬇</button>
+			<button onmouseup="stopMovingMokepon()" onmousedown="startMovingMokepon('right')">➡</button>
+		</div>
 	</section>
 
 	<section id="choose-attack" style="display: none;">
@@ -31,25 +47,26 @@
 		<div id="attacks-container" class="attacks-container">
 		</div>
 
-		<div class="pets-container">
+		<div class="mokepons-container">
 			<input type="checkbox" id="player-win" hidden />
-			<div class="pet-info-card">
-				<p><span id="player-pet"></span> <b>(You)</b></p>
+			<div class="mokepon-info-card">
+				<p><span id="player-mokepon"></span> <b>(You)</b></p>
 				<p><span id="player-wins">0</span> 👑</p>
-				<img src="" alt="" id="player-pet-img" />
+				<img src="" alt="" id="player-mokepon-img" />
 				<div class="attack-logger" id="player-attacks"></div>
 			</div>
 			<h3>V.S.</h3>
 			<input type="checkbox" id="opponent-win" hidden />
-			<div class="pet-info-card">
-				<p><span id="opponent-pet"></span> <b>(Opponent)</b></p>
+			<div class="mokepon-info-card">
+				<p><span id="opponent-mokepon"></span> <b>(Opponent)</b></p>
 				<p><span id="opponent-wins">0</span> 👑</p>
-				<img src="" alt="" id="opponent-pet-img" />
+				<img src="" alt="" id="opponent-mokepon-img" />
 				<div class="attack-logger" id="opponent-attacks"></div>
 			</div>
 		</div>
 
 		<button id="restart-game" style="display: none;">Restart</button>
+		<button id="continue-game" style="display: none;">Continue</button>
 
 	</section>
 </body>
