@@ -192,8 +192,12 @@ function startGame () {
 		});
 	}
 
-	btnMokeponSelect.addEventListener("click", () => { playerMokeponSelect(); });
-	btnRestart.addEventListener("click", () => { location.reload(); });
+	btnMokeponSelect.addEventListener("click", () => {
+		playerMokeponSelect(); 
+	});
+	btnRestart.addEventListener("click", () => {
+		location.reload(); 
+	});
 	btnContinue.addEventListener("click", () => {
 		sectionChooseAttack.style.display = "none";
 		
@@ -327,17 +331,17 @@ function attackWith (attack) {
 	logAttack("player", playerAttack);
 
 	const opponentAttackIndex = random(0, currentOpponent.attacks.length - 1);
-	const opponentAttack = currentOpponent.attacks.splice(opponentAttackIndex, 1)[0];
+	const [ opponentAttack ] = currentOpponent.attacks.splice(opponentAttackIndex, 1);
 
 	logAttack("opponent", opponentAttack);
 
 	const result = (playerAttack.value - opponentAttack.value);
 
-	if (result == 1 || result < -1) {
+	if (result === 1 || result < -1) {
 		h3Result.textContent = "You Win! 🎉";
 		player.wins++;
 	}
-	else if (result == -1 || result > 1) {
+	else if (result === -1 || result > 1) {
 		h3Result.textContent = "You Lose! 💀";
 		currentOpponent.wins++;
 	}
@@ -371,7 +375,7 @@ function initializeMap () {
 
 	if (opponents.length === 0) {
 		setTimeout(() => {
-			alert("🎉 You defeated all the mokepons in the area, congratulations! 😃\nThe game will now restart")
+			alert("🎉 You defeated all the mokepons in the area, congratulations! 😃\nThe game will now restart");
 			location.reload();
 		}, 1000);
 	}
@@ -383,23 +387,27 @@ function initializeMap () {
 		case "w":
 		case "arrowup":
 			startMovingMokepon("up");
-			break;	
+			break;
 		case "s":
 		case "arrowdown":
 			startMovingMokepon("down");
-			break;	
+			break;
 		case "a":
 		case "arrowleft":
 			startMovingMokepon("left");
-			break;	
+			break;
 		case "d":
 		case "arrowright":
 			startMovingMokepon("right");
-			break;	
+			break;
+		default:
+			break;
 		}
 	});
 
-	window.addEventListener("keyup", () => { stopMovingMokepon(); });
+	window.addEventListener("keyup", () => {
+		stopMovingMokepon(); 
+	});
 }
 
 function renderMap () {
@@ -470,6 +478,9 @@ function startMovingMokepon (direction) {
 		break;
 	case "right":
 		player.speedX = MapEntity.SPEED_UNIT;
+		break;
+	default:
+		stopMovingMokepon();
 		break;
 	}
 }

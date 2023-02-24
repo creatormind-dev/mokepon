@@ -1,0 +1,101 @@
+{
+	"root": true,
+	"extends": [
+		"eslint:recommended"
+	],
+	"plugins": [
+	],
+	"ignorePatterns": [],
+	"parserOptions": {
+		"sourceType": "module",
+		"ecmaVersion": "latest"
+	},
+	"env": {
+		"browser": true,
+		"es6": true,
+		"node": true
+	},
+	"rules": {
+		"array-bracket-spacing": [ "error", "always", {
+			"singleValue": true,
+			"objectsInArrays": false,
+			"arraysInArrays": false
+		}],
+		"arrow-body-style": [ "error", "as-needed" ],
+		"arrow-parens": [ "error", "always" ],
+		"block-spacing": [ "error", "always" ],
+		"brace-style": [ "error", "stroustrup" ],
+		"comma-spacing": "error",
+		"comma-style": [ "error", "last" ],
+		"curly": [ "error", "multi-or-nest" ],
+		"default-case": "warn",
+		"default-case-last": "error",
+		"default-param-last": "error",
+		"dot-location": [ "error", "property" ],
+		"eol-last": [ "error", "always" ],
+		"eqeqeq": [ "warn", "smart" ],
+		"func-call-spacing": [ "error", "never" ],
+		"indent": [ "error", "tab" ],
+		"key-spacing": "error",
+		"keyword-spacing": "error",
+		"linebreak-style": [ "error", "unix" ],
+		"max-depth": "warn",
+		"no-array-constructor": "error",
+		"no-else-return": "error",
+		"no-eval": "warn",
+		"no-multi-spaces": "warn",
+		"no-multiple-empty-lines": [ "warn",  {
+			"max": 2,
+			"maxEOF": 0
+		}],
+		"no-var": "error",
+		"no-whitespace-before-property": "error",
+		"object-curly-newline": [ "warn", {
+			"ObjectPattern": {
+				"multiline": true,
+				"minProperties": 5
+			},
+			"ImportDeclaration": {
+				"multiline": true,
+				"minProperties": 7
+			},
+			"ExportDeclaration": {
+				"multiline": true,
+				"minProperties": 3
+			}
+		}],
+		"object-curly-spacing": [ "error", "always", {
+			"arraysInObjects": true,
+			"objectsInObjects": true
+		}],
+		"prefer-arrow-callback": "warn",
+		"prefer-const": "error",
+		"prefer-destructuring": "warn",
+		"prefer-rest-params": "error",
+		"quotes": [ "error", "double" ],
+		"rest-spread-spacing": "error",
+		"semi": [ "error", "always" ],
+		"spaced-comment": [ "warn", "always", {
+			"line": {
+				"markers": [ "/" ],
+				"exceptions": [ "-", "+" ]
+			},
+			"block": {
+				"markers": [ "!" ],
+				"exceptions": [ "*" ],
+				"balanced": true
+			}
+		}],
+		"space-before-blocks": "error",
+		"space-before-function-paren": "error",
+		"space-in-parens": "error",
+		"space-infix-ops": "error",
+		"space-unary-ops": [ "error", {
+			"words": true,
+			"nonwords": false
+		}],
+		"yoda": [ "error", "never", {
+			"exceptRange": true
+		}]
+	}
+}
