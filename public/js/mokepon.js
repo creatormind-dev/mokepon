@@ -4,6 +4,38 @@
 const $ = document.querySelector.bind(document);
 
 
+// #region HTML_VARIABLES
+const btnMokeponSelect = $("#mokepon-select");
+const btnRestart = $("#restart-game");
+const btnContinue = $("#continue-game");
+
+const inputPlayerWin = $("#player-win");
+const inputOpponentWin = $("#opponent-win");
+
+const sectionChooseMokepon = $("#choose-mokepon");
+const sectionChooseAttack = $("#choose-attack");
+const sectionMapView = $("#map-view");
+
+const mokeponCardsContainer = $("#mokepon-cards");
+
+const spanPlayerMokepon = $("#player-mokepon");
+const spanPlayerWins = $("#player-wins");
+const spanOpponentMokepon = $("#opponent-mokepon");
+const spanOpponentWins = $("#opponent-wins");
+
+const imgPlayerMokepon = $("#player-mokepon-img");
+const imgOpponentMokepon = $("#opponent-mokepon-img");
+
+const h3Result = $("#result");
+
+/** @type {HTMLCanvasElement} */
+const canvasMap = $("#map");
+
+/** @type {HTMLButtonElement[]} */
+const attackButtons = [];
+// #endregion
+
+
 class Attack {
 	/**
 	 * @param {string} type 
@@ -90,14 +122,32 @@ class Mokepon extends MapEntity {
 		this.name = name;
 		this.attacks = attacks;
 
-		this.id = null;
 		this.img = new Image();
 		this.img.src = `/assets/${name.toLowerCase()}.png`;
-		this.wins = 0;
 	}
 
 	clone () {
-		return new Mokepon(this.name, Array.from(this.attacks));
+		return new Mokepon(this.name, [ ...this.attacks ]);
+	}
+}
+
+class Player {
+	/**
+	 * @param {string} id
+	 */
+	constructor (id) {
+		this.id = id;
+
+		this.mokepon = null;
+		this.inBattle = false;
+		this.attacks = [];
+	}
+
+	setMokepon (mokepon) {
+		if (!(mokepon instanceof Mokepon))
+			throw new Error("Provided mokepon is not valid.");
+
+		this.mokepon = mokepon;
 	}
 }
 
@@ -112,59 +162,28 @@ const ratigueya = new Mokepon("Ratigueya", [ fire, fire, fire, water, earth ]);
 const MOKEPONS = [ hipodoge, capipepo, ratigueya, /* tucapalma, langostelvis, pydos */ ];
 
 
-/** @type {Mokepon?} */
-let playerMokepon = null;
-/** @type {string?} */
-let playerId = null;
-/** @type {Mokepon?} */
+/** @type {Player?} */
+let player = null;
+/** @type {Player?} */
 let currentOpponent = null;
 
-/** @type {Mokepon[]} */
-const opponentMokepons = [];
+/** @type {Player[]} */
+const opponents = [];
 
 let mapRefreshInterval = null;
-
-
-// #region HTML_VARIABLES
-const btnMokeponSelect = $("#mokepon-select");
-const btnRestart = $("#restart-game");
-const btnContinue = $("#continue-game");
-
-const inputPlayerWin = $("#player-win");
-const inputOpponentWin = $("#opponent-win");
-
-const sectionChooseMokepon = $("#choose-mokepon");
-const sectionChooseAttack = $("#choose-attack");
-const sectionMapView = $("#map-view");
-
-const mokeponCardsContainer = $("#mokepon-cards");
-
-const spanPlayerMokepon = $("#player-mokepon");
-const spanPlayerWins = $("#player-wins");
-const spanOpponentMokepon = $("#opponent-mokepon");
-const spanOpponentWins = $("#opponent-wins");
-
-const imgPlayerMokepon = $("#player-mokepon-img");
-const imgOpponentMokepon = $("#opponent-mokepon-img");
-
-const h3Result = $("#result");
-
-/** @type {HTMLCanvasElement} */
-const canvasMap = $("#map");
-
-/** @type {HTMLButtonElement[]} */
-const attackButtons = [];
-// #endregion
+let battleFetchInterval = null;
 
 
 /**
- * Makes an HTTP request to the specified endpoint and returns a JSON of the response data.
+ * Makes an HTTP request to the specified endpoint of the API server and returns
+ * the response of the request.
  * @param {string} endpoint The endpoint to make the request to.
  * @param {"get"|"post"|"put"|"patch"|"delete"} method Which HTTP method to use.
  * @param {object?} data Additional data to send (not applicable with GET requests).
+ * @returns The {@link Response} object of the HTTP request.
  */
 async function f (endpoint, method = "get", data = null) {
-	const url = new URL(`http://localhost:8080/${endpoint}`);
+	const url = new URL(`http://192.168.1.69:8080/${endpoint}`);
 	const headers = new Headers();
 	let body = null;
 
@@ -217,7 +236,7 @@ async function startGame () {
 			btnMokeponSelect.disabled = false;
 
 			if (this.checked)
-				playerMokepon = mokepon.clone();
+				player.mokepon = mokepon.clone();
 		});
 	}
 
@@ -230,8 +249,13 @@ async function startGame () {
 		btnRestart.addEventListener("click", () => {
 			location.reload(); 
 		});
-		btnContinue.addEventListener("click", () => {
+		btnContinue.addEventListener("click", async () => {
 			sectionChooseAttack.style.display = "none";
+
+			const res = await f(`battle/${player.id}/end`);
+
+			if (!res.ok)
+				throw new Error("Something went wrong!");
 			
 			initializeMap();
 		});
@@ -251,32 +275,19 @@ async function joinGame () {
 
 	const data = await res.json();
 
-	({ playerId } = data);
+	player = new Player(data.playerId);
 }
 
 /**
  * Ends the game, enabling the restart button and alerting the winner.
- * @param {"player"|"opponent"} winner Who won the battle.
  */
-function finishGame (winner) {
-	if (winner === "player") {
-		alert("🎉 You won! 😃");
+function finishGame () {
+	currentOpponent = null;
+	player.attacks = [];
 
-		opponentMokepons.splice(opponentMokepons.indexOf(currentOpponent), 1);
-		currentOpponent = null;
-
+	setTimeout(async () => {
 		btnContinue.style.display = "block";
-	}
-	else if (winner === "opponent") {
-		alert("💀 You lost! 😞");
-
-		btnRestart.style.display = "block";
-	}
-	else {
-		alert("💬 Nobody won, it's a Tie! 😐");
-
-		btnContinue.style.display = "block";
-	}
+	}, 1000);
 }
 
 /**
@@ -297,7 +308,7 @@ function logAttack (from, attack) {
  * This function is launched after the user selects a mokepon.
  */
 async function playerMokeponSelect () {
-	if (!playerMokepon) {
+	if (!player.mokepon) {
 		alert("Please, pick a pet!");
 		return;
 	}
@@ -306,15 +317,20 @@ async function playerMokeponSelect () {
 
 	const attacksContainer = $("#attacks-container");
 
-	for (let i = 0; i < playerMokepon.attacks.length; i++) {
-		const attack = playerMokepon.attacks[i];
+	for (let i = 0; i < player.mokepon.attacks.length; i++) {
+		const attack = player.mokepon.attacks[i];
 		const attackButton = document.createElement("button");
 
 		attackButton.textContent = `${attack.icon} ${attack.type}`;
 		attackButton.addEventListener("click", (e) => {
 			e.target.disabled = true;
 
-			attackWith(attack);
+			player.attacks.push(attack);
+
+			logAttack("player", attack);
+
+			if (player.attacks.length === 5)
+				attackWith(player.attacks);
 		});
 
 		attacksContainer.appendChild(attackButton);
@@ -322,8 +338,8 @@ async function playerMokeponSelect () {
 	}
 
 	try {
-		const res = await f(`mokepon/${playerId}`, "post", {
-			mokepon: playerMokepon.name
+		const res = await f(`mokepon/${player.id}`, "post", {
+			mokepon: player.mokepon.name
 		});
 
 		if (!res.ok)
@@ -338,16 +354,13 @@ async function playerMokeponSelect () {
 }
 
 /**
- * Starts the battling sequence.
- * @param {Mokepon} opponent The opponent's mokepon to battle against with.
+ * Starts the battling sequence / Reset's battle section to defaults.
+ * @param {Player} opponent The opponent's to battle against with.
  */
-function startBattle (opponent) {
+async function startBattle (opponent) {
 	clearInterval(mapRefreshInterval);
 
-	playerMokepon.wins = 0;
-	opponent.wins = 0;
-
-	opponent.attacks = MOKEPONS.find((mokepon) => mokepon.name === opponent.name).clone().attacks;
+	currentOpponent = opponent;
 
 	inputPlayerWin.checked = false;
 	inputOpponentWin.checked = false;
@@ -361,67 +374,96 @@ function startBattle (opponent) {
 	sectionChooseAttack.style.display = "flex";
 	sectionMapView.style.display = "none";
 
-	spanPlayerMokepon.innerHTML = playerMokepon.name;
-	imgPlayerMokepon.src = playerMokepon.img.src;
-	spanPlayerWins.innerHTML = playerMokepon.wins;
-	spanOpponentMokepon.innerHTML = opponent.name;
-	imgOpponentMokepon.src = opponent.img.src;
-	spanOpponentWins.innerHTML = opponent.wins;
+	spanPlayerMokepon.innerHTML = player.mokepon.name;
+	imgPlayerMokepon.src = player.mokepon.img.src;
+	spanPlayerWins.innerHTML = "0";
+	spanOpponentMokepon.innerHTML = opponent.mokepon.name;
+	imgOpponentMokepon.src = opponent.mokepon.img.src;
+	spanOpponentWins.innerHTML = "0";
 
 	$("#player-attacks").innerHTML = "";
 	$("#opponent-attacks").innerHTML = "";
 	h3Result.textContent = "";
 
-	currentOpponent = opponent;
+	const res = await f("battle/start", "post", {
+		playerId: player.id,
+		opponentId: opponent.id
+	});
+
+	if (!res.ok)
+		throw new Error("Something went wrong!");
+}
+
+function finishBattle () {
+	clearInterval(battleFetchInterval);
+
+	let playerWins = 0;
+	let opponentWins = 0;
+
+	for (let i = 0; i < player.attacks.length; i++) {
+		const playerAttack = player.attacks[i];
+		const opponentAttack = currentOpponent.attacks[i];
+
+		logAttack("opponent", opponentAttack);
+
+		const result = (playerAttack.value - opponentAttack.value);
+
+		if (result === 1 || result < -1) 
+			playerWins++;
+		else if (result === -1 || result > 1) 
+			opponentWins++;
+	}
+
+	spanPlayerWins.textContent = playerWins;
+	spanOpponentWins.textContent = opponentWins;
+
+	if (playerWins > opponentWins) {
+		h3Result.textContent = "You win! 🎉";
+		inputPlayerWin.checked = true;
+	}
+	else if (opponentWins > playerWins) {
+		h3Result.textContent = "You lose! 💀";
+		inputOpponentWin.checked = true;
+	}
+	else 
+		h3Result.textContent = "It's a tie! 😐";
+	
+
+	finishGame();
 }
 
 /**
- * Attacks with the given type of attack.
- * @param {Attack} attack The type of attack used in combat.
+ * Attacks the opponent player with the given `attacks`.
+ * @param {Attack[]} attacks The attacks that were selected by the player.
  */
-function attackWith (attack) {
-	const playerAttack = attack;
+async function attackWith (attacks) {
+	const res = await f(`battle/${player.id}`, "post", { attacks });
 
-	logAttack("player", playerAttack);
+	if (!res.ok)
+		throw new Error("Something went wrong!");
 
-	const opponentAttackIndex = random(0, currentOpponent.attacks.length - 1);
-	const [ opponentAttack ] = currentOpponent.attacks.splice(opponentAttackIndex, 1);
+	battleFetchInterval = setInterval(waitForOpponent, 250);
+}
 
-	logAttack("opponent", opponentAttack);
+async function waitForOpponent () {
+	h3Result.textContent = "Waiting for opponent...";
 
-	const result = (playerAttack.value - opponentAttack.value);
+	const res = await f(`battle/${currentOpponent.id}`);
 
-	if (result === 1 || result < -1) {
-		h3Result.textContent = "You Win! 🎉";
-		playerMokepon.wins++;
-	}
-	else if (result === -1 || result > 1) {
-		h3Result.textContent = "You Lose! 💀";
-		currentOpponent.wins++;
-	}
-	else if (result === 0)
-		h3Result.textContent = "Tie! 😐";
+	if (!res.ok)
+		throw new Error("Something went wrong!");
 
-	spanPlayerWins.textContent = playerMokepon.wins;
-	spanOpponentWins.textContent = currentOpponent.wins;
+	/** @type {{ attacks: Attack[] }} */
+	const data = await res.json();
 
+	const { attacks } = data;
 
-	if ((playerMokepon.wins === 5 || currentOpponent.wins === 5) || currentOpponent.attacks.length === 0) {
-		if (playerMokepon.wins > currentOpponent.wins) {
-			inputPlayerWin.checked = true;
-			h3Result.textContent = "You Win! 🎉";
-			finishGame("player");
-		}
-		else if (currentOpponent.wins > playerMokepon.wins) {
-			inputOpponentWin.checked = true;
-			h3Result.textContent = "You Lose! 💀";
-			finishGame("opponent");
-		}
-		else {
-			h3Result.textContent = "Tie! 😐";
-			finishGame();
-		}
-	}
+	if (attacks.length !== 5)
+		return;
+
+	currentOpponent.attacks = attacks;
+
+	finishBattle();
 }
 
 function initializeMap () {
@@ -463,22 +505,31 @@ function renderMap () {
 
 	mapBg.src = "/assets/mokemap.png";
 
-	playerMokepon.moveTo(playerMokepon.x + playerMokepon.speedX, playerMokepon.y + playerMokepon.speedY);
+	// Mokepon's speed is given by moving in the map, if there is
+	// no speed, the mokepon won't move.
+	player.mokepon.moveTo(
+		player.mokepon.x + player.mokepon.speedX,
+		player.mokepon.y + player.mokepon.speedY
+	);
 
 	ctx.clearRect(0, 0, canvasMap.width, canvasMap.height);
 	ctx.drawImage(mapBg, 0, 0, canvasMap.width, canvasMap.height);
 	
-	playerMokepon.render();
+	player.mokepon.render();
 
-	for (const opponent of opponentMokepons) {
-		opponent.render();
-		
-		checkCollisionWith(opponent);
+	for (const opponent of opponents) {
+		if (opponent.inBattle)
+			continue;
+
+		opponent.mokepon.render();
+
+		if (player.mokepon.isMoving() && hasCollisionWith(opponent.mokepon)) 
+			startBattle(opponent);
 	}
 
-	f(`map/${playerId}`, "post", {
-		x: playerMokepon.x,
-		y: playerMokepon.y
+	f(`map/${player.id}`, "post", {
+		x: player.mokepon.x,
+		y: player.mokepon.y
 	})
 		.then((res) => {
 			if (!res.ok)
@@ -487,76 +538,84 @@ function renderMap () {
 			return res.json();
 		})
 		.then((data) => {
-			const { opponents } = data;
+			/** @type {(Player & { x: number, y: number, opponent?: string })[]} */ 
+			const opponentsData = data.opponents;
+			const battlingOpponent = data.battling;
 
-			for (const opponent of opponents) {
-				if (!opponent?.mokepon)
+			for (const opponent of opponentsData) {
+				// This player has not selected a mokepon yet, skip it.
+				if (!opponent.mokepon)
 					continue;
+				
+				// Find the opponent in the list of registered opponents.
+				let registeredOpponent = opponents.find((opp) => (opp.id === opponent.id));
 
-				let opponentMokepon = opponentMokepons.find((mokepon) => (mokepon.id === opponent.id));
+				if (registeredOpponent && battlingOpponent === registeredOpponent.id) 
+					startBattle(registeredOpponent);
+				
 
-				if (!opponentMokepon) {
+				// If the opponent wasn't found it will register them.
+				// (with it's corresponding mokepon)
+				if (!registeredOpponent) {
+					registeredOpponent = new Player(opponent.id);
+
 					switch (opponent.mokepon.name) {
 					case "Hipodoge":
-						opponentMokepon = hipodoge.clone();
+						registeredOpponent.setMokepon(hipodoge.clone());
 						break;
 					case "Capipepo":
-						opponentMokepon = capipepo.clone();
+						registeredOpponent.setMokepon(capipepo.clone());
 						break;
 					case "Ratigueya":
-						opponentMokepon = ratigueya.clone();
+						registeredOpponent.setMokepon(ratigueya.clone());
 						break;
 					default:
 						throw new Error("Opponent does not have a valid mokepon.");
 					}
 
-					opponentMokepon.id = opponent.id;
-
-					opponentMokepons.push(opponentMokepon);
+					opponents.push(registeredOpponent);
 				}
 
-				opponentMokepon.x = opponent.x;
-				opponentMokepon.y = opponent.y;
+				// Updating the coordinates of this player's mokepon.
+				registeredOpponent.mokepon.moveTo(opponent.x, opponent.y);
+				registeredOpponent.inBattle = opponent.opponent !== null;
 			}
 		})
 		.catch((err) => {
 			alert(err.message);
 			console.error(err);
 		});
-
-	if (playerMokepon.isMoving()) {
-		for (const opponent of opponentMokepons)
-			checkCollisionWith(opponent);
-	}
 }
 
 /**
- * @param {MapEntity} entity 
+ * Makes validations to check if the player's mokepon is colliding with an
+ * `entity`, stopping it's movement.
+ * @param {MapEntity} entity The entity to check collision against with.
  */
-function checkCollisionWith (entity) {
+function hasCollisionWith (entity) {
 	const aboveEntity = entity.y;
 	const belowEntity = entity.y + entity.height;
 	const leftEntity = entity.x;
 	const rightEntity = entity.x + entity.width;
 
-	const abovePlayer = playerMokepon.y;
-	const belowPlayer = playerMokepon.y + playerMokepon.height;
-	const leftPlayer = playerMokepon.x;
-	const rightPlayer = playerMokepon.x + playerMokepon.width;
+	const abovePlayer = player.mokepon.y;
+	const belowPlayer = player.mokepon.y + player.mokepon.height;
+	const leftPlayer = player.mokepon.x;
+	const rightPlayer = player.mokepon.x + player.mokepon.width;
 
+	// There is no collision.
 	if (
 		belowPlayer < aboveEntity ||
 		abovePlayer > belowEntity ||
 		rightPlayer < leftEntity ||
 		leftPlayer > rightEntity
 	)
-		return;
+		return false;
 
-	playerMokepon.moveTo(playerMokepon.x - playerMokepon.speedX, playerMokepon.y - playerMokepon.speedY);
-	playerMokepon.stop();
+	player.mokepon.moveTo(player.mokepon.x - player.mokepon.speedX, player.mokepon.y - player.mokepon.speedY);
+	player.mokepon.stop();
 
-	if (entity instanceof Mokepon)
-		startBattle(entity);
+	return true;
 }
 
 /**
@@ -566,16 +625,16 @@ function checkCollisionWith (entity) {
 function startMovingMokepon (direction) {
 	switch (direction) {
 	case "up":
-		playerMokepon.speedY = -MapEntity.SPEED_UNIT;
+		player.mokepon.speedY = -MapEntity.SPEED_UNIT;
 		break;
 	case "down":
-		playerMokepon.speedY = MapEntity.SPEED_UNIT;
+		player.mokepon.speedY = MapEntity.SPEED_UNIT;
 		break;
 	case "left":
-		playerMokepon.speedX = -MapEntity.SPEED_UNIT;
+		player.mokepon.speedX = -MapEntity.SPEED_UNIT;
 		break;
 	case "right":
-		playerMokepon.speedX = MapEntity.SPEED_UNIT;
+		player.mokepon.speedX = MapEntity.SPEED_UNIT;
 		break;
 	default:
 		stopMovingMokepon();
@@ -584,8 +643,8 @@ function startMovingMokepon (direction) {
 }
 
 function stopMovingMokepon () {
-	playerMokepon.speedX = 0;
-	playerMokepon.speedY = 0;
+	player.mokepon.speedX = 0;
+	player.mokepon.speedY = 0;
 }
 
 

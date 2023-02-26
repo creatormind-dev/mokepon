@@ -30,11 +30,15 @@
 
 		<div class="arrows-container">
 			<br />
-			<button onmouseup="stopMovingMokepon()" onmousedown="startMovingMokepon('up')">⬆</button>
+			<button ontouchend="stopMovingMokepon()" onmouseup="stopMovingMokepon()" ontouchstart="startMovingMokepon('up')"
+				onmousedown="startMovingMokepon('up')">⬆</button>
 			<br />
-			<button onmouseup="stopMovingMokepon()" onmousedown="startMovingMokepon('left')">⬅</button>
-			<button onmouseup="stopMovingMokepon()" onmousedown="startMovingMokepon('down')">⬇</button>
-			<button onmouseup="stopMovingMokepon()" onmousedown="startMovingMokepon('right')">➡</button>
+			<button ontouchend="stopMovingMokepon()" onmouseup="stopMovingMokepon()" ontouchstart="startMovingMokepon('left')"
+				onmousedown="startMovingMokepon('left')">⬅</button>
+			<button ontouchend="stopMovingMokepon()" onmouseup="stopMovingMokepon()" ontouchstart="startMovingMokepon('down')"
+				onmousedown="startMovingMokepon('down')">⬇</button>
+			<button ontouchend="stopMovingMokepon()" onmouseup="stopMovingMokepon()"
+				ontouchstart="startMovingMokepon('right')" onmousedown="startMovingMokepon('right')">➡</button>
 		</div>
 	</section>
 
