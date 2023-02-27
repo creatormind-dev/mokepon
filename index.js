@@ -3,36 +3,6 @@ const express = require("express");
 const cors = require("cors");
 
 
-class Player {
-	/** @param {string} id */
-	constructor (id) {
-		this.id = id;
-		this.x = -1;
-		this.y = -1;
-		this.mokepon = null;
-		this.opponent = null;
-		this.attacks = [];
-	}
-
-	moveTo (x, y) {
-		this.x = x;
-		this.y = y;
-	}
-}
-
-class Mokepon {
-	/** @param {string} name */
-	constructor (name) {
-		this.name = name;
-	}
-}
-
-
-function random (min, max) {
-	return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-
 /** @type {Player[]} */
 const players = [];
 
@@ -44,9 +14,14 @@ server.use(express.json());
 server.use(express.static(path.join(__dirname, "public")));
 
 
+/**
+ * Generates an ID for the player and adds it to the players list.
+ */
 server.get("/join", (req, res) => {
 	let id = null;
 
+	// Generates a random number between 1000 and 9999 that hasn't
+	// been used before by another player.
 	while (id === null) {
 		id = `${random(1000, 9999)}`;
 
@@ -58,26 +33,15 @@ server.get("/join", (req, res) => {
 
 	players.push(player);
 
-	console.log(`Player with ID ${id} joined the game!`);
-
 	res.status(200)
 		.json({ playerId: id })
 		.end();
 });
 
-server.get("/disconnect", (req, res) => {
-	const { id } = req.body;
 
-	const currentPlayer = players.find((player) => (player.id === id));
-
-	if (!currentPlayer) {
-		res.status(404).end();
-		return;
-	}
-
-	players.splice(players.indexOf(currentPlayer), 1);
-});
-
+/**
+ * Updates a player's mokepon to the one specified.
+ */
 server.post("/mokepon/:playerId", (req, res) => {
 	const { playerId } = req.params;
 	const name = req.body.mokepon;
@@ -93,6 +57,10 @@ server.post("/mokepon/:playerId", (req, res) => {
 	res.status(200).end();
 });
 
+
+/**
+ * Keeps track of the position of each player in the map.
+ */
 server.post("/map/:playerId", (req, res) => {
 	const { playerId } = req.params;
 	const { x, y } = req.body;
@@ -113,6 +81,10 @@ server.post("/map/:playerId", (req, res) => {
 		.end();
 });
 
+
+/**
+ * Updates the state of player and opponent to indicate that they are now in battle.
+ */
 server.post("/battle/start", (req, res) => {
 	const { playerId, opponentId } = req.body;
 
@@ -130,6 +102,9 @@ server.post("/battle/start", (req, res) => {
 	res.status(200).end();
 });
 
+/**
+ * Sets the state of the player back to normal, the battle is over.
+ */
 server.get("/battle/:playerId/end", (req, res) => {
 	const { playerId } = req.params;
 
@@ -146,6 +121,9 @@ server.get("/battle/:playerId/end", (req, res) => {
 	res.status(200).end();
 });
 
+/**
+ * Registers the selected attacks by the player.
+ */
 server.post("/battle/:playerId", (req, res) => {
 	const { playerId } = req.params;
 	const { attacks } = req.body;
@@ -162,6 +140,9 @@ server.post("/battle/:playerId", (req, res) => {
 	res.status(200).end();
 });
 
+/**
+ * Returns the requested attacks by a player (the opponent's attacks in this case).
+ */
 server.get("/battle/:playerId", (req, res) => {
 	const { playerId } = req.params;
 	
@@ -181,3 +162,44 @@ server.get("/battle/:playerId", (req, res) => {
 server.listen(8080, () => {
 	console.log("Server listening on port 8080");
 });
+
+
+/**
+ * Represents a player in the game.
+ */
+class Player {
+	/** @param {string} id */
+	constructor (id) {
+		this.id = id;
+		this.x = -1;
+		this.y = -1;
+		this.mokepon = null;
+		this.opponent = null;
+		this.attacks = [];
+	}
+
+	moveTo (x, y) {
+		this.x = x;
+		this.y = y;
+	}
+}
+
+/**
+ * A mokepon or something.
+ */
+class Mokepon {
+	/** @param {string} name */
+	constructor (name) {
+		this.name = name;
+	}
+}
+
+
+/**
+ * Hello World!
+ * @param {number} min The minimum amount of Hello Worlds to generate.
+ * @param {number} max The maximum amount of Hello Worlds to generate.
+ */
+function random (min, max) {
+	return Math.floor(Math.random() * (max - min + 1) + min);
+}

@@ -36,121 +36,18 @@ const attackButtons = [];
 // #endregion
 
 
-class Attack {
-	/**
-	 * @param {string} type 
-	 * @param {string} icon 
-	 * @param {number} value
-	 */
-	constructor (type, icon, value) {
-		this.type = type;
-		this.icon = icon;
-		this.value = value;
-	}
-}
+/** @type {Player?} */
+let player = null;
+/** @type {Player?} */
+let currentOpponent = null;
+
+/** @type {Player[]} */
+const opponents = [];
+
 
 const fire = new Attack("fire", "🔥", 1);
 const water = new Attack("water", "💧", 2);
 const earth = new Attack("earth", "🌵", 3);
-
-
-class MapEntity {
-	static SPEED_UNIT = 5;
-
-
-	/**
-	 * @param {string} iconSrc 
-	 * @param {number} x 
-	 * @param {number} y 
-	 * @param {number} height 
-	 * @param {number} width 
-	 */
-	constructor (iconSrc, x, y, height, width) {
-		this.icon = new Image();
-		this.icon.src = iconSrc;
-		this.x = x;
-		this.y = y;
-		this.height = height;
-		this.width = width;
-		this.speedX = 0;
-		this.speedY = 0;
-	}
-
-
-	render () {
-		const ctx = canvasMap.getContext("2d");
-
-		ctx.drawImage(this.icon, this.x, this.y, this.width, this.height);
-	}
-
-	/**
-	 * @param {number} x 
-	 * @param {number} y 
-	 */
-	moveTo (x, y) {
-		this.x = x;
-		this.y = y;
-	}
-
-	stop () {
-		this.speedX = 0;
-		this.speedY = 0;
-	}
-
-	isMoving () {
-		return (this.speedX !== 0) || (this.speedY !== 0);
-	}
-
-	clone () {
-		return new MapEntity(this.icon.src, this.x, this.y, this.height, this.width);
-	}
-}
-
-class Mokepon extends MapEntity {
-	/**
-	 * @param {string} name
-	 * @param {Attack[]} attacks
-	 */
-	constructor (name, attacks) {
-		super(
-			`/assets/${name.toLowerCase()}-icon.png`,
-			random(0, canvasMap.width - 32),
-			random(0, canvasMap.height - 32),
-			32,
-			32
-		);
-		this.name = name;
-		this.attacks = attacks;
-
-		this.img = new Image();
-		this.img.src = `/assets/${name.toLowerCase()}.png`;
-	}
-
-	clone () {
-		return new Mokepon(this.name, [ ...this.attacks ]);
-	}
-}
-
-class Player {
-	/**
-	 * @param {string} id
-	 */
-	constructor (id) {
-		this.id = id;
-
-		this.mokepon = null;
-		this.inBattle = false;
-		this.attacks = [];
-	}
-
-	setMokepon (mokepon) {
-		if (!(mokepon instanceof Mokepon))
-			throw new Error("Provided mokepon is not valid.");
-
-		this.mokepon = mokepon;
-	}
-}
-
 
 const hipodoge = new Mokepon("Hipodoge", [ water, water, water, fire, earth ]);
 const capipepo = new Mokepon("Capipepo", [ earth, earth, earth, fire, water ]);
@@ -161,14 +58,6 @@ const ratigueya = new Mokepon("Ratigueya", [ fire, fire, fire, water, earth ]);
 
 const MOKEPONS = [ hipodoge, capipepo, ratigueya, /* tucapalma, langostelvis, pydos */ ];
 
-
-/** @type {Player?} */
-let player = null;
-/** @type {Player?} */
-let currentOpponent = null;
-
-/** @type {Player[]} */
-const opponents = [];
 
 let mapRefreshInterval = null;
 let battleFetchInterval = null;
@@ -183,7 +72,7 @@ let battleFetchInterval = null;
  * @returns The {@link Response} object of the HTTP request.
  */
 async function f (endpoint, method = "get", data = null) {
-	const url = new URL(`http://192.168.1.69:8080/${endpoint}`);
+	const url = new URL(`http://${location.hostname}:8080/${endpoint}`);
 	const headers = new Headers();
 	let body = null;
 
@@ -219,6 +108,7 @@ async function startGame () {
 	inputOpponentWin.checked = false;
 	btnMokeponSelect.disabled = true;
 
+	// Renders each mokepon selectable card.
 	for (const mokepon of MOKEPONS) {
 		mokeponCardsContainer.innerHTML += `
 		<input type="radio" id="${mokepon.name.toLowerCase()}" name="mokepon" hidden />
@@ -267,6 +157,9 @@ async function startGame () {
 
 }
 
+/**
+ * Tries to join the player to the multiplayer server.
+ */
 async function joinGame () {
 	const res = await f("join");
 
@@ -276,18 +169,6 @@ async function joinGame () {
 	const data = await res.json();
 
 	player = new Player(data.playerId);
-}
-
-/**
- * Ends the game, enabling the restart button and alerting the winner.
- */
-function finishGame () {
-	currentOpponent = null;
-	player.attacks = [];
-
-	setTimeout(async () => {
-		btnContinue.style.display = "block";
-	}, 1000);
 }
 
 /**
@@ -309,7 +190,7 @@ function logAttack (from, attack) {
  */
 async function playerMokeponSelect () {
 	if (!player.mokepon) {
-		alert("Please, pick a pet!");
+		alert("Please, pick a mokepon!");
 		return;
 	}
 
@@ -317,6 +198,7 @@ async function playerMokeponSelect () {
 
 	const attacksContainer = $("#attacks-container");
 
+	// Sets all the attack buttons based on the chosen mokepon.
 	for (let i = 0; i < player.mokepon.attacks.length; i++) {
 		const attack = player.mokepon.attacks[i];
 		const attackButton = document.createElement("button");
@@ -338,6 +220,7 @@ async function playerMokeponSelect () {
 	}
 
 	try {
+		// Sends the chosen mokepon to the server.
 		const res = await f(`mokepon/${player.id}`, "post", {
 			mokepon: player.mokepon.name
 		});
@@ -385,6 +268,7 @@ async function startBattle (opponent) {
 	$("#opponent-attacks").innerHTML = "";
 	h3Result.textContent = "";
 
+	// Let's the server know that the player has started a battle.
 	const res = await f("battle/start", "post", {
 		playerId: player.id,
 		opponentId: opponent.id
@@ -394,12 +278,17 @@ async function startBattle (opponent) {
 		throw new Error("Something went wrong!");
 }
 
+/**
+ * Processes the attacks of the player and their opponent, counting each player's
+ * win and giving the battle's result.
+ */
 function finishBattle () {
 	clearInterval(battleFetchInterval);
 
 	let playerWins = 0;
 	let opponentWins = 0;
 
+	// Compares each attack and adds a point to the players for each win.
 	for (let i = 0; i < player.attacks.length; i++) {
 		const playerAttack = player.attacks[i];
 		const opponentAttack = currentOpponent.attacks[i];
@@ -407,6 +296,10 @@ function finishBattle () {
 		logAttack("opponent", opponentAttack);
 
 		const result = (playerAttack.value - opponentAttack.value);
+
+		// 🔥 > 🌵
+		// 🌵 > 💧
+		// 💧 > 🔥
 
 		if (result === 1 || result < -1) 
 			playerWins++;
@@ -429,7 +322,12 @@ function finishBattle () {
 		h3Result.textContent = "It's a tie! 😐";
 	
 
-	finishGame();
+	currentOpponent = null;
+	player.attacks = [];
+
+	setTimeout(() => {
+		btnContinue.style.display = "block";
+	}, 1000);
 }
 
 /**
@@ -445,6 +343,11 @@ async function attackWith (attacks) {
 	battleFetchInterval = setInterval(waitForOpponent, 250);
 }
 
+/**
+ * This function is executed on an interval, checking to see if
+ * the opponent has selected their attacks to proceed with the
+ * results.
+ */
 async function waitForOpponent () {
 	h3Result.textContent = "Waiting for opponent...";
 
@@ -466,6 +369,9 @@ async function waitForOpponent () {
 	finishBattle();
 }
 
+/**
+ * Sets the map rendering and enables Keyboard control over it to move the mokepon.
+ */
 function initializeMap () {
 	sectionMapView.style.display = "flex";
 
@@ -499,6 +405,10 @@ function initializeMap () {
 	});
 }
 
+/**
+ * This function is executed on an interval, refreshing the map
+ * to update the player's location, as well as the opponents'.
+ */
 function renderMap () {
 	const ctx = canvasMap.getContext("2d");
 	const mapBg = new Image();
@@ -515,6 +425,21 @@ function renderMap () {
 	ctx.clearRect(0, 0, canvasMap.width, canvasMap.height);
 	ctx.drawImage(mapBg, 0, 0, canvasMap.width, canvasMap.height);
 	
+	// Checking if mokepon goes out of bounds.
+	if (
+		(player.mokepon.x < 0) ||
+		(player.mokepon.x + player.mokepon.width > canvasMap.width) ||
+		(player.mokepon.y < 0) ||
+		(player.mokepon.y + player.mokepon.height > canvasMap.height)
+	) {
+		player.mokepon.moveTo(
+			player.mokepon.x - player.mokepon.speedX,
+			player.mokepon.y - player.mokepon.speedY
+		);
+
+		player.mokepon.stop();
+	}
+	
 	player.mokepon.render();
 
 	for (const opponent of opponents) {
@@ -523,6 +448,7 @@ function renderMap () {
 
 		opponent.mokepon.render();
 
+		// If the player collides with another player the battle sequence will begin.
 		if (player.mokepon.isMoving() && hasCollisionWith(opponent.mokepon)) 
 			startBattle(opponent);
 	}
@@ -542,17 +468,19 @@ function renderMap () {
 			const opponentsData = data.opponents;
 			const battlingOpponent = data.battling;
 
+			// Updates the coordinates of every other player that is not already in battle.
 			for (const opponent of opponentsData) {
-				// This player has not selected a mokepon yet, skip it.
 				if (!opponent.mokepon)
 					continue;
 				
 				// Find the opponent in the list of registered opponents.
 				let registeredOpponent = opponents.find((opp) => (opp.id === opponent.id));
 
+				// Checks if another player has entered a battle with the current player.
+				//* This validation is required, as if one player is still in the map it
+				//*  will not enter battle by checking collisions.
 				if (registeredOpponent && battlingOpponent === registeredOpponent.id) 
 					startBattle(registeredOpponent);
-				
 
 				// If the opponent wasn't found it will register them.
 				// (with it's corresponding mokepon)
@@ -603,16 +531,21 @@ function hasCollisionWith (entity) {
 	const leftPlayer = player.mokepon.x;
 	const rightPlayer = player.mokepon.x + player.mokepon.width;
 
-	// There is no collision.
+	// If true, there is no collision with said entity.
 	if (
-		belowPlayer < aboveEntity ||
-		abovePlayer > belowEntity ||
-		rightPlayer < leftEntity ||
-		leftPlayer > rightEntity
+		(belowPlayer < aboveEntity) ||
+		(abovePlayer > belowEntity) ||
+		(rightPlayer < leftEntity) ||
+		(leftPlayer > rightEntity)
 	)
 		return false;
 
-	player.mokepon.moveTo(player.mokepon.x - player.mokepon.speedX, player.mokepon.y - player.mokepon.speedY);
+	// There is collision, moves the player to the last "safe" coordinates.
+	player.mokepon.moveTo(
+		player.mokepon.x - player.mokepon.speedX,
+		player.mokepon.y - player.mokepon.speedY
+	);
+
 	player.mokepon.stop();
 
 	return true;
@@ -642,10 +575,156 @@ function startMovingMokepon (direction) {
 	}
 }
 
+/**
+ * This function only exists so that it can be called from the HTML.
+ */
 function stopMovingMokepon () {
 	player.mokepon.speedX = 0;
 	player.mokepon.speedY = 0;
 }
 
+// #region CLASSES
+/**
+ * Represents an entity in the canvas map.
+ */
+class MapEntity {
+	static SPEED_UNIT = 5;
+
+
+	/**
+	 * @param {string} iconSrc 
+	 * @param {number} x 
+	 * @param {number} y 
+	 * @param {number} height 
+	 * @param {number} width 
+	 */
+	constructor (iconSrc, x, y, height, width) {
+		this.icon = new Image();
+		this.icon.src = iconSrc;
+		this.x = x;
+		this.y = y;
+		this.height = height;
+		this.width = width;
+		this.speedX = 0;
+		this.speedY = 0;
+	}
+
+
+	/**
+	 * Renders the current entity in the map.
+	 */
+	render () {
+		const ctx = canvasMap.getContext("2d");
+
+		ctx.drawImage(this.icon, this.x, this.y, this.width, this.height);
+	}
+
+	/**
+	 * Moves the entity to said coordinates.
+	 * @param {number} x 
+	 * @param {number} y 
+	 */
+	moveTo (x, y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	/**
+	 * Stops the entity's movement speed.
+	 */
+	stop () {
+		this.speedX = 0;
+		this.speedY = 0;
+	}
+
+	/**
+	 * Checks if the current entity has speed on any axis (equivalent of moving).
+	 */
+	isMoving () {
+		return (this.speedX !== 0) || (this.speedY !== 0);
+	}
+
+	/**
+	 * Returns a new instance based on the current entity.
+	 */
+	clone () {
+		return new MapEntity(this.icon.src, this.x, this.y, this.height, this.width);
+	}
+}
+
+/**
+ * Represents a valid, playable mokepon.
+ */
+class Mokepon extends MapEntity {
+	/**
+	 * @param {string} name
+	 * @param {Attack[]} attacks
+	 */
+	constructor (name, attacks) {
+		super(
+			`/assets/${name.toLowerCase()}-icon.png`,
+			random(0, canvasMap.width - 24),
+			random(0, canvasMap.height - 24),
+			24,
+			24
+		);
+		this.name = name;
+		this.attacks = attacks;
+
+		this.img = new Image();
+		this.img.src = `/assets/${name.toLowerCase()}.png`;
+	}
+
+	/**
+	 * Returns a new instance based on the current mokepon.
+	 */
+	clone () {
+		return new Mokepon(this.name, [ ...this.attacks ]);
+	}
+}
+
+/**
+ * Represents a valid mokepon attack.
+ */
+class Attack {
+	/**
+	 * @param {string} type 
+	 * @param {string} icon 
+	 * @param {number} value
+	 */
+	constructor (type, icon, value) {
+		this.type = type;
+		this.icon = icon;
+		this.value = value;
+	}
+}
+
+/**
+ * Represents a player in the multiplayer game.
+ */
+class Player {
+	/**
+	 * @param {string} id
+	 */
+	constructor (id) {
+		this.id = id;
+
+		this.mokepon = null;
+		this.inBattle = false;
+		this.attacks = [];
+	}
+
+	/**
+	 * Sets the given `mokepon` as the selected mokepon by a player.
+	 * @param {Mokepon} mokepon A valid mokepon.
+	 */
+	setMokepon (mokepon) {
+		if (!(mokepon instanceof Mokepon))
+			throw new Error("Provided mokepon is not valid.");
+
+		this.mokepon = mokepon;
+	}
+}
+// #endregion
 
 (startGame)();
