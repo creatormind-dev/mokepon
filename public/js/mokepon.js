@@ -4,6 +4,151 @@
 const $ = document.querySelector.bind(document);
 
 
+// #region CLASSES
+/**
+ * Represents an entity in the canvas map.
+ */
+class MapEntity {
+	static SPEED_UNIT = 5;
+
+
+	/**
+	 * @param {string} iconSrc 
+	 * @param {number} x 
+	 * @param {number} y 
+	 * @param {number} height 
+	 * @param {number} width 
+	 */
+	constructor (iconSrc, x, y, height, width) {
+		this.icon = new Image();
+		this.icon.src = iconSrc;
+		this.x = x;
+		this.y = y;
+		this.height = height;
+		this.width = width;
+		this.speedX = 0;
+		this.speedY = 0;
+	}
+
+
+	/**
+	 * Renders the current entity in the map.
+	 */
+	render () {
+		const ctx = canvasMap.getContext("2d");
+
+		ctx.drawImage(this.icon, this.x, this.y, this.width, this.height);
+	}
+
+	/**
+	 * Moves the entity to said coordinates.
+	 * @param {number} x 
+	 * @param {number} y 
+	 */
+	moveTo (x, y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	/**
+	 * Stops the entity's movement speed.
+	 */
+	stop () {
+		this.speedX = 0;
+		this.speedY = 0;
+	}
+
+	/**
+	 * Checks if the current entity has speed on any axis (equivalent of moving).
+	 */
+	isMoving () {
+		return (this.speedX !== 0) || (this.speedY !== 0);
+	}
+
+	/**
+	 * Returns a new instance based on the current entity.
+	 */
+	clone () {
+		return new MapEntity(this.icon.src, this.x, this.y, this.height, this.width);
+	}
+}
+
+/**
+ * Represents a valid, playable mokepon.
+ */
+class Mokepon extends MapEntity {
+	/**
+	 * @param {string} name
+	 * @param {Attack[]} attacks
+	 */
+	constructor (name, attacks) {
+		super(
+			`/assets/${name.toLowerCase()}-icon.png`,
+			random(0, canvasMap.width - 24),
+			random(0, canvasMap.height - 24),
+			24,
+			24
+		);
+		this.name = name;
+		this.attacks = attacks;
+
+		this.img = new Image();
+		this.img.src = `/assets/${name.toLowerCase()}.png`;
+	}
+
+	/**
+	 * Returns a new instance based on the current mokepon.
+	 */
+	clone () {
+		return new Mokepon(this.name, [ ...this.attacks ]);
+	}
+}
+
+/**
+ * Represents a valid mokepon attack.
+ */
+class Attack {
+	/**
+	 * @param {string} type 
+	 * @param {string} icon 
+	 * @param {number} value
+	 */
+	constructor (type, icon, value) {
+		this.type = type;
+		this.icon = icon;
+		this.value = value;
+	}
+}
+
+/**
+ * Represents a player in the multiplayer game.
+ */
+class Player {
+	/**
+	 * @param {string} id
+	 */
+	constructor (id) {
+		this.id = id;
+
+		this.mokepon = null;
+		this.inBattle = false;
+		this.attacks = [];
+	}
+
+	/**
+	 * Sets the given `mokepon` as the selected mokepon by a player.
+	 * @param {Mokepon} mokepon A valid mokepon.
+	 */
+	setMokepon (mokepon) {
+		if (!(mokepon instanceof Mokepon))
+			throw new Error("Provided mokepon is not valid.");
+
+		this.mokepon = mokepon;
+	}
+}
+// #endregion
+
+
 // #region HTML_VARIABLES
 const btnMokeponSelect = $("#mokepon-select");
 const btnRestart = $("#restart-game");
@@ -583,148 +728,5 @@ function stopMovingMokepon () {
 	player.mokepon.speedY = 0;
 }
 
-// #region CLASSES
-/**
- * Represents an entity in the canvas map.
- */
-class MapEntity {
-	static SPEED_UNIT = 5;
-
-
-	/**
-	 * @param {string} iconSrc 
-	 * @param {number} x 
-	 * @param {number} y 
-	 * @param {number} height 
-	 * @param {number} width 
-	 */
-	constructor (iconSrc, x, y, height, width) {
-		this.icon = new Image();
-		this.icon.src = iconSrc;
-		this.x = x;
-		this.y = y;
-		this.height = height;
-		this.width = width;
-		this.speedX = 0;
-		this.speedY = 0;
-	}
-
-
-	/**
-	 * Renders the current entity in the map.
-	 */
-	render () {
-		const ctx = canvasMap.getContext("2d");
-
-		ctx.drawImage(this.icon, this.x, this.y, this.width, this.height);
-	}
-
-	/**
-	 * Moves the entity to said coordinates.
-	 * @param {number} x 
-	 * @param {number} y 
-	 */
-	moveTo (x, y) {
-		this.x = x;
-		this.y = y;
-	}
-
-	/**
-	 * Stops the entity's movement speed.
-	 */
-	stop () {
-		this.speedX = 0;
-		this.speedY = 0;
-	}
-
-	/**
-	 * Checks if the current entity has speed on any axis (equivalent of moving).
-	 */
-	isMoving () {
-		return (this.speedX !== 0) || (this.speedY !== 0);
-	}
-
-	/**
-	 * Returns a new instance based on the current entity.
-	 */
-	clone () {
-		return new MapEntity(this.icon.src, this.x, this.y, this.height, this.width);
-	}
-}
-
-/**
- * Represents a valid, playable mokepon.
- */
-class Mokepon extends MapEntity {
-	/**
-	 * @param {string} name
-	 * @param {Attack[]} attacks
-	 */
-	constructor (name, attacks) {
-		super(
-			`/assets/${name.toLowerCase()}-icon.png`,
-			random(0, canvasMap.width - 24),
-			random(0, canvasMap.height - 24),
-			24,
-			24
-		);
-		this.name = name;
-		this.attacks = attacks;
-
-		this.img = new Image();
-		this.img.src = `/assets/${name.toLowerCase()}.png`;
-	}
-
-	/**
-	 * Returns a new instance based on the current mokepon.
-	 */
-	clone () {
-		return new Mokepon(this.name, [ ...this.attacks ]);
-	}
-}
-
-/**
- * Represents a valid mokepon attack.
- */
-class Attack {
-	/**
-	 * @param {string} type 
-	 * @param {string} icon 
-	 * @param {number} value
-	 */
-	constructor (type, icon, value) {
-		this.type = type;
-		this.icon = icon;
-		this.value = value;
-	}
-}
-
-/**
- * Represents a player in the multiplayer game.
- */
-class Player {
-	/**
-	 * @param {string} id
-	 */
-	constructor (id) {
-		this.id = id;
-
-		this.mokepon = null;
-		this.inBattle = false;
-		this.attacks = [];
-	}
-
-	/**
-	 * Sets the given `mokepon` as the selected mokepon by a player.
-	 * @param {Mokepon} mokepon A valid mokepon.
-	 */
-	setMokepon (mokepon) {
-		if (!(mokepon instanceof Mokepon))
-			throw new Error("Provided mokepon is not valid.");
-
-		this.mokepon = mokepon;
-	}
-}
-// #endregion
 
 (startGame)();
